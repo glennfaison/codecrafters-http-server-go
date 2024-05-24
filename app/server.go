@@ -32,7 +32,7 @@ func main() {
 	}
 
 	if strings.HasPrefix(string(buff), "GET / HTTP/1.1") {
-		conn.Write([]byte("HTTP/1.1 200 OK \r\n\r\n"))
+		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	} else {
 		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 	}
