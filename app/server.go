@@ -56,7 +56,7 @@ func handleConnection(connection net.Conn) {
 	case request.Path == "/":
 		connection.Write([]byte(Http_Status_200))
 	case strings.HasPrefix(request.Path, "/user-agent"):
-		response := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(len(request.Headers["user-agent"])) + "\r\n\r\n" + request.Headers["User-Agent"]
+		response := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(len(request.Headers["user-agent"])) + "\r\n\r\n" + request.Headers["user-agent"]
 		connection.Write([]byte(response))
 	case strings.HasPrefix(request.Path, "/echo/"):
 		pattern, err := regexp.Compile(`/echo/(\w*)`)
