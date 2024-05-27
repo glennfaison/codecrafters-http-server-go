@@ -1,0 +1,50 @@
+package myhttp
+
+import "strings"
+
+type Request struct {
+	method   string
+	path     string
+	protocol string
+	headers  map[string]string
+	body     string
+}
+
+func (r Request) GetMethod() string {
+	return r.method
+}
+
+func (r Request) GetPath() string {
+	return r.path
+}
+
+func (r Request) GetProtocol() string {
+	return r.protocol
+}
+
+func (r Request) GetHeaders() map[string]string {
+	return r.headers
+}
+
+func (r Request) GetHeader(header string) string {
+	return r.headers[strings.ToLower(header)]
+}
+
+func (r Request) HasHeader(header string) bool {
+	_, exists := r.headers[strings.ToLower(header)]
+	return exists
+}
+
+func (r Request) GetBody() string {
+	return r.body
+}
+
+func (r *Request) ToString() string {
+	requestString := r.method + " " + r.path + " " + r.protocol + "\r\n"
+	for name, value := range r.headers {
+		requestString += name + ": " + value + "\r\n"
+	}
+	requestString += "\r\n"
+	requestString += r.body
+	return requestString
+}
