@@ -53,7 +53,7 @@ func handleConnection(connection net.Conn) {
 	case strings.HasPrefix(request.GetPath(), "/echo/"):
 		pattern, err := regexp.Compile(`/echo/(\w*)`)
 		if err != nil {
-			fmt.Println("Failed to parse request")
+			fmt.Println("Failed to parse request path")
 		}
 
 		strs := pattern.FindStringSubmatch(request.GetPath())

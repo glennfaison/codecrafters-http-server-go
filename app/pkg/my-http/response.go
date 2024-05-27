@@ -59,7 +59,7 @@ func (r *Response) SetBody(body string) *Response {
 
 func (r *Response) ToString() string {
 	Http_Status_Codes := map[int]string{}
-	Http_Status_Codes[200] = "200 OK\r\n\r\n"
+	Http_Status_Codes[200] = "200 OK\r\n"
 	Http_Status_Codes[404] = "404 Not Found\r\n\r\n"
 	Http_Status_Codes[500] = "500 Internal Server Error\r\n\r\n"
 	statusString, found := Http_Status_Codes[r.status]
