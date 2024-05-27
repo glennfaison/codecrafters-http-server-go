@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"path"
 	"regexp"
@@ -27,9 +28,7 @@ func main() {
 	fmt.Println("Listening...")
 
 	for {
-		fmt.Println("before accepting connection")
 		connection, err := listener.Accept()
-		fmt.Println("Connection accepted")
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue
@@ -53,7 +52,6 @@ func handleConnection(connection net.Conn) {
 		connection.Write([]byte(myhttp.NewResponse().SetStatus(200).ToString()))
 	case strings.HasPrefix(request.GetPath(), "/user-agent"):
 		response := myhttp.NewResponse().SetStatus(200).SetBody(request.GetHeader("user-agent")).ToString()
-		println(response)
 		connection.Write([]byte(response))
 	case strings.HasPrefix(request.GetPath(), "/echo/"):
 		pattern, err := regexp.Compile(`/echo/(\w*)`)
@@ -76,20 +74,47 @@ func handleConnection(connection net.Conn) {
 		matches := re.FindStringSubmatch(request.GetPath())
 		if len(matches) < 2 {
 			fmt.Println("Expected at least 2 matches, got ", matches)
-		}
-		filePath := path.Join(directory, matches[1])
-		if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
-			responseStr := myhttp.NewResponse().SetStatus(404).ToString()
-			connection.Write([]byte(responseStr))
 			return
 		}
-		fileData, err := os.ReadFile(filePath)
-		if err != nil {
-			fmt.Println("Failed to read file: ", filePath, err.Error())
+		filePath := path.Join(directory, matches[1])
+		if request.GetMethod() == http.MethodGet {
+			if err := getFile(connection, filePath); err != nil {
+				return
+			}
 		}
-		responseStr := myhttp.NewResponse().SetStatus(200).AddHeader("content-type", "application/octet-stream").SetBody(string(fileData)).ToString()
-		connection.Write([]byte(responseStr))
+		if request.GetMethod() == http.MethodPost {
+			if err := postFile(request, connection, filePath); err != nil {
+				return
+			}
+		}
 	default:
 		connection.Write([]byte(myhttp.NewResponse().SetStatus(404).ToString()))
 	}
+}
+
+func getFile(connection net.Conn, filePath string) error {
+	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+		responseStr := myhttp.NewResponse().SetStatus(404).ToString()
+		connection.Write([]byte(responseStr))
+		return err
+	}
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Println("Failed to read file: ", filePath, err.Error())
+		return err
+	}
+	responseStr := myhttp.NewResponse().SetStatus(200).AddHeader("content-type", "application/octet-stream").SetBody(string(fileData)).ToString()
+	connection.Write([]byte(responseStr))
+	return nil
+}
+
+func postFile(request myhttp.Request, connection net.Conn, filePath string) error {
+	x := request.GetBody()
+	println("BODY: ", x)
+	if err := os.WriteFile(filePath, []byte(x), 0644); err != nil {
+		return err
+	}
+	responseStr := myhttp.NewResponse().SetStatus(201).ToString()
+	connection.Write([]byte(responseStr))
+	return nil
 }
