@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
-
-	// Uncomment this block to pass the first stage
 	"net"
 	"os"
+	"regexp"
+	"strings"
 
 	myhttp "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-http"
 )
@@ -29,7 +27,7 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue
 		}
-		handleConnection(connection)
+		go handleConnection(connection)
 	}
 }
 
