@@ -42,13 +42,13 @@ func handleConnection(connection net.Conn) {
 		connection.Write([]byte(myhttp.NewResponse().SetStatus(500).ToString()))
 		return
 	}
-	println(request.ToString())
 
 	switch true {
 	case request.GetPath() == "/":
 		connection.Write([]byte(myhttp.NewResponse().SetStatus(200).ToString()))
 	case strings.HasPrefix(request.GetPath(), "/user-agent"):
 		response := myhttp.NewResponse().SetStatus(200).SetBody(request.GetHeader("user-agent")).ToString()
+		println(response)
 		connection.Write([]byte(response))
 	case strings.HasPrefix(request.GetPath(), "/echo/"):
 		pattern, err := regexp.Compile(`/echo/(\w*)`)
