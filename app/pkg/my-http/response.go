@@ -3,6 +3,9 @@ package myhttp
 import (
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Response struct {
@@ -68,7 +71,7 @@ func (r *Response) ToString() string {
 	responseString := r.protocol + " " + statusString
 	// Add response headers, each on a line.
 	for name, value := range r.headers {
-		responseString += name + ": " + value + "\r\n"
+		responseString += cases.Title(language.English, cases.Compact).String(name) + ": " + value + "\r\n"
 	}
 	responseString += "\r\n"
 	// Add response body
