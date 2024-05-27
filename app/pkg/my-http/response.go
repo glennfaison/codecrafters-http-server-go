@@ -15,7 +15,9 @@ type Response struct {
 func NewResponse() *Response {
 	return &Response{
 		protocol: "HTTP/1.1",
-		headers:  map[string]string{},
+		headers: map[string]string{
+			"content-type": "text/plain",
+		},
 	}
 }
 
