@@ -1,16 +1,23 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"net"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 
 	myhttp "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-http"
 )
 
+var directory string
+
 func main() {
+	flag.StringVar(&directory, "directory", "", "Absolute path to the server file.")
+	flag.Parse()
 	listener, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -60,6 +67,28 @@ func handleConnection(connection net.Conn) {
 			response := myhttp.NewResponse().SetStatus(200).SetBody(match).ToString()
 			connection.Write([]byte(response))
 		}
+	case strings.HasPrefix(request.GetPath(), "/files/"):
+		re, err := regexp.Compile(`/files/(\S+)`)
+		if err != nil {
+			fmt.Println("Failed to parse request path")
+			return
+		}
+		matches := re.FindStringSubmatch(request.GetPath())
+		if len(matches) < 2 {
+			fmt.Println("Expected at least 2 matches, got ", matches)
+		}
+		filePath := path.Join(directory, matches[1])
+		if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+			responseStr := myhttp.NewResponse().SetStatus(404).ToString()
+			connection.Write([]byte(responseStr))
+			return
+		}
+		fileData, err := os.ReadFile(filePath)
+		if err != nil {
+			fmt.Println("Failed to read file: ", filePath, err.Error())
+		}
+		responseStr := myhttp.NewResponse().SetStatus(200).AddHeader("content-type", "application/octet-stream").SetBody(string(fileData)).ToString()
+		connection.Write([]byte(responseStr))
 	default:
 		connection.Write([]byte(myhttp.NewResponse().SetStatus(404).ToString()))
 	}
