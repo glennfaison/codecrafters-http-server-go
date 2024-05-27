@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -75,6 +76,9 @@ func handleConnection(connection net.Conn) {
 				var b bytes.Buffer
 				gz := gzip.NewWriter(&b)
 				gz.Write([]byte(match))
+				gz.Close()
+				fmt.Println("FOOO", hex.EncodeToString(b.Bytes()))
+				fmt.Println("MATCH", match)
 				response.SetBody(b.String())
 			}
 			connection.Write([]byte(response.ToString()))
@@ -124,7 +128,6 @@ func getFile(connection net.Conn, filePath string) error {
 
 func postFile(request myhttp.Request, connection net.Conn, filePath string) error {
 	x := request.GetBody()
-	println("BODY: ", x)
 	if err := os.WriteFile(filePath, []byte(x), 0644); err != nil {
 		return err
 	}
