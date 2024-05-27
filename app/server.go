@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"flag"
 	"fmt"
@@ -70,6 +72,10 @@ func handleConnection(connection net.Conn) {
 			}
 			if slices.Index(x, "gzip") >= 0 {
 				response.AddHeader("Content-Encoding", "gzip")
+				var b bytes.Buffer
+				gz := gzip.NewWriter(&b)
+				gz.Write([]byte(match))
+				response.SetBody(b.String())
 			}
 			connection.Write([]byte(response.ToString()))
 		}
