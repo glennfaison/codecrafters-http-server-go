@@ -54,7 +54,7 @@ func ParseRequest(connection net.Conn) (Request, error) {
 }
 
 func ParseRequestHeaders(requestString string) (map[string]string, error) {
-	httpRequestHeadersRegexp, err := regexp.Compile(`(\s+((\w|-)+): (\S+))`)
+	httpRequestHeadersRegexp, err := regexp.Compile(`(\s+((\w|-)+): ([^\r\n]+))`)
 	if err != nil {
 		fmt.Println("Failed to parse request headers")
 		return nil, err

@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 
 	myhttp "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-http"
@@ -63,7 +64,11 @@ func handleConnection(connection net.Conn) {
 		if len(strs) > 0 {
 			match := strs[1]
 			response := myhttp.NewResponse().SetStatus(200).SetBody(match)
-			if request.GetHeader("accept-encoding") == "gzip" {
+			x := strings.Split(request.GetHeader("accept-encoding"), ",")
+			for idx := range x {
+				x[idx] = strings.TrimSpace(x[idx])
+			}
+			if slices.Index(x, "gzip") >= 0 {
 				response.AddHeader("Content-Encoding", "gzip")
 			}
 			connection.Write([]byte(response.ToString()))
