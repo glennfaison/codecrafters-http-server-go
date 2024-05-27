@@ -62,8 +62,11 @@ func handleConnection(connection net.Conn) {
 		strs := pattern.FindStringSubmatch(request.GetPath())
 		if len(strs) > 0 {
 			match := strs[1]
-			response := myhttp.NewResponse().SetStatus(200).SetBody(match).ToString()
-			connection.Write([]byte(response))
+			response := myhttp.NewResponse().SetStatus(200).SetBody(match)
+			if request.GetHeader("accept-encoding") == "gzip" {
+				response.AddHeader("Content-Encoding", "gzip")
+			}
+			connection.Write([]byte(response.ToString()))
 		}
 	case strings.HasPrefix(request.GetPath(), "/files/"):
 		re, err := regexp.Compile(`/files/(\S+)`)
