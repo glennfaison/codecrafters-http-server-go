@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strings"
 
+	myexpress "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-express"
 	myhttp "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-http"
 )
 
@@ -31,33 +32,16 @@ func main() {
 	defer listener.Close()
 	fmt.Println("Listening...")
 
-	for {
-		connection, err := listener.Accept()
-		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
-			continue
-		}
-		go handleConnection(connection)
-	}
-}
-
-func handleConnection(connection net.Conn) {
-	defer connection.Close()
-
-	request, err := myhttp.ParseRequest(connection)
-	if err != nil {
-		fmt.Println("Failed to read from connection")
-		connection.Write([]byte(myhttp.NewResponse().SetStatus(500).ToString()))
-		return
-	}
-
-	switch true {
-	case request.GetPath() == "/":
-		connection.Write([]byte(myhttp.NewResponse().SetStatus(200).ToString()))
-	case strings.HasPrefix(request.GetPath(), "/user-agent"):
-		response := myhttp.NewResponse().SetStatus(200).SetBody(request.GetHeader("user-agent")).ToString()
-		connection.Write([]byte(response))
-	case strings.HasPrefix(request.GetPath(), "/echo/"):
+	router := myexpress.NewRouter(listener)
+	router.RegisterRouteHandler("GET", "/", func(connection net.Conn, request myhttp.Request) {
+		response := myhttp.NewResponse().SetStatus(200).ToBytes()
+		connection.Write(response)
+	})
+	router.RegisterRouteHandler("GET", "/user-agent", func(connection net.Conn, request myhttp.Request) {
+		response := myhttp.NewResponse().SetStatus(200).SetBody(request.GetHeader("user-agent")).ToBytes()
+		connection.Write(response)
+	})
+	router.RegisterRouteHandler("GET", "/echo/:value", func(connection net.Conn, request myhttp.Request) {
 		pattern, err := regexp.Compile(`/echo/(\w*)`)
 		if err != nil {
 			fmt.Println("Failed to parse request path")
@@ -83,7 +67,8 @@ func handleConnection(connection net.Conn) {
 			}
 			connection.Write([]byte(response.ToString()))
 		}
-	case strings.HasPrefix(request.GetPath(), "/files/"):
+	})
+	router.RegisterFallthroughHandler(func(connection net.Conn, request myhttp.Request) {
 		re, err := regexp.Compile(`/files/(\S+)`)
 		if err != nil {
 			fmt.Println("Failed to parse request path")
@@ -105,9 +90,12 @@ func handleConnection(connection net.Conn) {
 				return
 			}
 		}
-	default:
-		connection.Write([]byte(myhttp.NewResponse().SetStatus(404).ToString()))
-	}
+
+		response := myhttp.NewResponse().SetStatus(404).ToBytes()
+		connection.Write(response)
+	})
+
+	router.Start()
 }
 
 func getFile(connection net.Conn, filePath string) error {

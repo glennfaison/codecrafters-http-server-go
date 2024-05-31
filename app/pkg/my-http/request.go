@@ -7,6 +7,8 @@ type Request struct {
 	path     string
 	protocol string
 	headers  map[string]string
+	params   map[string]string
+	query    map[string]string
 	body     string
 }
 
@@ -37,6 +39,30 @@ func (r Request) HasHeader(header string) bool {
 
 func (r Request) GetBody() string {
 	return r.body
+}
+
+func (r Request) GetParams() map[string]string {
+	return r.params
+}
+
+func (r Request) GetParam(name string) string {
+	return r.params[name]
+}
+
+func (r Request) AddParam(name string, value string) {
+	r.params[name] = value
+}
+
+func (r Request) GetQueryParams() map[string]string {
+	return r.query
+}
+
+func (r Request) GetQueryParam(name string) string {
+	return r.query[name]
+}
+
+func (r Request) AddQueryParam(name string, value string) {
+	r.query[name] = value
 }
 
 func (r *Request) ToString() string {

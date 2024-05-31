@@ -79,3 +79,7 @@ func (r *Response) ToString() string {
 	responseString += r.body
 	return responseString
 }
+
+func (r *Response) ToBytes() []byte {
+	return []byte(r.ToString())
+}
