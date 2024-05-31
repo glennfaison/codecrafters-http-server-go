@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	myhttp "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-http"
-	myexpress "github.com/codecrafters-io/http-server-starter-go/app/pkg/myrouter"
+	myexpress "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-router"
 )
 
 var directory string
