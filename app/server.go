@@ -15,8 +15,8 @@ import (
 	"slices"
 	"strings"
 
-	myexpress "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-express"
 	myhttp "github.com/codecrafters-io/http-server-starter-go/app/pkg/my-http"
+	myexpress "github.com/codecrafters-io/http-server-starter-go/app/pkg/myrouter"
 )
 
 var directory string
@@ -69,25 +69,24 @@ func main() {
 		}
 	})
 	router.RegisterFallthroughHandler(func(connection net.Conn, request myhttp.Request) {
+		println("FFFFFFF", request.GetPath())
 		re, err := regexp.Compile(`/files/(\S+)`)
 		if err != nil {
 			fmt.Println("Failed to parse request path")
 			return
 		}
 		matches := re.FindStringSubmatch(request.GetPath())
-		if len(matches) < 2 {
-			fmt.Println("Expected at least 2 matches, got ", matches)
-			return
-		}
-		filePath := path.Join(directory, matches[1])
-		if request.GetMethod() == http.MethodGet {
-			if err := getFile(connection, filePath); err != nil {
-				return
+		if len(matches) == 2 {
+			filePath := path.Join(directory, matches[1])
+			if request.GetMethod() == http.MethodGet {
+				if err := getFile(connection, filePath); err != nil {
+					return
+				}
 			}
-		}
-		if request.GetMethod() == http.MethodPost {
-			if err := postFile(request, connection, filePath); err != nil {
-				return
+			if request.GetMethod() == http.MethodPost {
+				if err := postFile(request, connection, filePath); err != nil {
+					return
+				}
 			}
 		}
 
