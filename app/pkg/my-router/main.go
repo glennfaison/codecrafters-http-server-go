@@ -49,18 +49,19 @@ func (t *Router) GetCallbackKeys(method string, urlPattern string) []string {
 	return append([]string{strings.ToLower(method)}, patternSections...)
 }
 
+func (t *Router) RegisterFallthroughHandler(handler func(net.Conn, myhttp.Request)) {
+	t.fallThroughHandler = handler
+}
+
 func (t *Router) RegisterRouteHandler(method string, urlPattern string, handler func(net.Conn, myhttp.Request)) {
 	callbackKeys := t.GetCallbackKeys(method, urlPattern)
 
 	ptr := t.head
-	println(method, urlPattern)
-	fmt.Printf("%v %d\n", callbackKeys, len(callbackKeys))
 	for _, key := range callbackKeys {
 		name := key
 		if strings.HasPrefix(key, ":") {
 			key = ":var"
 		}
-		println("LOG:", key, ptr.name == "", len(ptr.children))
 		if _, exists := ptr.children[key]; !exists {
 			ptr.children[key] = NewNode()
 			ptr.children[key].name = name
@@ -70,11 +71,7 @@ func (t *Router) RegisterRouteHandler(method string, urlPattern string, handler 
 	ptr.handler = handler
 }
 
-func (t *Router) RegisterFallthroughHandler(handler func(net.Conn, myhttp.Request)) {
-	t.fallThroughHandler = handler
-}
-
-func (t Router) GetHandler(method string, urlPattern string) func(net.Conn, myhttp.Request) {
+func (t Router) GetRouteHandler(method string, urlPattern string) func(net.Conn, myhttp.Request) {
 	callbackKeys := t.GetCallbackKeys(method, urlPattern)
 
 	ptr := t.head
@@ -104,7 +101,7 @@ func (r Router) handleConnection(connection net.Conn) {
 		return
 	}
 
-	handlerFn := r.GetHandler(request.GetMethod(), request.GetPath())
+	handlerFn := r.GetRouteHandler(request.GetMethod(), request.GetPath())
 	handlerFn(connection, request)
 }
 

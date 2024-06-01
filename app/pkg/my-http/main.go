@@ -16,7 +16,10 @@ func ParseRequest(connection net.Conn) (Request, error) {
 	}
 	requestString := string(buff[:charactersRead])
 
-	// Parse request line.
+	return ParseRequestFromString(requestString)
+}
+
+func ParseRequestFromString(requestString string) (Request, error) {
 	httpRequestLineRegexp, err := regexp.Compile(`([A-Z]+) (\S+) (\S+)`)
 	if err != nil {
 		fmt.Println("Failed to parse request line")
@@ -24,13 +27,11 @@ func ParseRequest(connection net.Conn) (Request, error) {
 	}
 	requestLineMatches := httpRequestLineRegexp.FindStringSubmatch(requestString)
 
-	// Parse request headers.
-	requestHeaders, err := ParseRequestHeaders(requestString)
+	requestHeaders, err := ParseRequestHeadersFromString(requestString)
 	if err != nil {
 		return Request{}, err
 	}
 
-	// Parse request body.
 	requestBodyRegexp, err := regexp.Compile(`\r\n\r\n(.*)`)
 	if err != nil {
 		fmt.Println("Failed to parse request body")
@@ -53,7 +54,7 @@ func ParseRequest(connection net.Conn) (Request, error) {
 	return response, nil
 }
 
-func ParseRequestHeaders(requestString string) (map[string]string, error) {
+func ParseRequestHeadersFromString(requestString string) (map[string]string, error) {
 	httpRequestHeadersRegexp, err := regexp.Compile(`(\s+((\w|-)+): ([^\r\n]+))`)
 	if err != nil {
 		fmt.Println("Failed to parse request headers")
