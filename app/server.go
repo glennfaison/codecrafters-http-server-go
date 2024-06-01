@@ -58,7 +58,7 @@ func main() {
 				response.AddHeader("Content-Encoding", "gzip")
 				var b bytes.Buffer
 				gz := gzip.NewWriter(&b)
-				defer gz.Close()
+				gz.Close() // TODO: Find out why it MUST be closed immediately in order for the result in `b` to make sense
 				gz.Write([]byte(match))
 				response.SetBody(b.String())
 			}
