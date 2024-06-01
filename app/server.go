@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -59,17 +58,14 @@ func main() {
 				response.AddHeader("Content-Encoding", "gzip")
 				var b bytes.Buffer
 				gz := gzip.NewWriter(&b)
+				defer gz.Close()
 				gz.Write([]byte(match))
-				gz.Close()
-				fmt.Println("FOOO", hex.EncodeToString(b.Bytes()))
-				fmt.Println("MATCH", match)
 				response.SetBody(b.String())
 			}
 			connection.Write([]byte(response.ToString()))
 		}
 	})
 	router.RegisterFallthroughHandler(func(connection net.Conn, request myhttp.Request) {
-		println("FFFFFFF", request.GetPath())
 		re, err := regexp.Compile(`/files/(\S+)`)
 		if err != nil {
 			fmt.Println("Failed to parse request path")
